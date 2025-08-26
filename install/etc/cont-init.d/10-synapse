@@ -8,6 +8,31 @@ set +a
 
 PROCESS_NAME="synapse"
 
+#cat <<EOF
+#**
+#******************************************************************************************
+#*                                                                                        *
+#*                    END OF LIFE NOTICE AUGUST 18, 2025                                  *
+#*                               tiredofit/synapse                                        *
+#*                                                                                        *
+#* This image is no longer maintained as of and will not receive updates.                 *
+#*                                                                                        *
+#* A successor image is available at:                                                     *
+#*                                                                                        *
+#* Repository | Documentation:                                                            *
+#*   - https://github.com/nfrastack/container-synapse                                     *
+#*                                                                                        *
+#* Image Registries:                                                                      *
+#*   - https://hub.docker.com/r/nfrastack/synapse                                         *
+#*   - https://github.com/nfrastack/container-synapse/pkgs/container/container-synapse    *
+#*                                                                                        *
+#* Please visit https://nfrastack.com for more information.                               *
+#*                                                                                        *
+#******************************************************************************************
+#
+#EOF
+#
+#sleep 15
 sanity_db postgres
 db_ready postgres
 bootstrap_filesystem
