@@ -35,7 +35,7 @@ if var_true "${ENABLE_APPSERVICE_WATCHER}" ; then
     ## Watch APPSERVICE_DIRECTORY
     while inotifywait -q -e create,delete,modify,attrib ${APPSERVICE_PATH} ; do
         print_info "Reloading synapse configuration do to a detected appservice change change"
-        autogenerate_appservice
+        synapse_autogenerate_appservice
         sleep 5
         pkill -9 -f "synapse.app.homeserver"
         exit 0

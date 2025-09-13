@@ -2,14 +2,13 @@
 
 ## About
 
-This repository will build a container with [Synapse] (https://matrix.oprg/docs/projects/server/synapse), A Matrix.org Homeserver.
+This repository will build a container with [Synapse](https://matrix.oprg/docs/projects/server/synapse), A Matrix.org Homeserver.
 
 ## Maintainer
 
 * [Nfrastack](https://www.nfrastack.com)
 
 ## Table of Contents
-
 
 * [About](#about)
 * [Maintainer](#maintainer)
@@ -202,7 +201,6 @@ Below is the complete list of available options that can be used to customize yo
 ### Shell Access
 
 For debugging and maintenance, `bash` and `sh` are available in the container.
-
 
 ## Support & Maintenance
 

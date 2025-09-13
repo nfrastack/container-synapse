@@ -4,14 +4,14 @@
 
 synapse_autogenerate_appservice() {
     sudo -u synapse "${CONFIG_PATH}"/appservices.yaml
-    sudo -u yq -i   '
-                        del(.app_service_config_files)
-                    '  "${CONFIG_PATH}"/appservices.yaml
+    sudo -u synapse yq -i    '
+                            del(.app_service_config_files)
+                          '  "${CONFIG_PATH}"/appservices.yaml
     for appservice in ${APPSERVICE_PATH}/*.y* ; do
         export NFRA_APPSERVICE=${appservice}
-        sudo -u yq -i '
-                    .app_service_config_files += [env(NFRA_APPSERVICE)]
-                '  "${CONFIG_PATH}"/appservices.yaml
+        sudo -u synapse yq -i  '
+                              .app_service_config_files += [env(NFRA_APPSERVICE)]
+                            '  "${CONFIG_PATH}"/appservices.yaml
         unset NFRA_APPSERVICE
     done
 }
@@ -466,15 +466,15 @@ disable_msisdn_registration: true
 
 EOF
         fi
-        sudo -u yq -i   '
-                            .public_baseurl = env(SERVER_URL)
-                        '  "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u synapse yq -i    '
+                                .public_baseurl = env(SERVER_URL)
+                              ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
-        sudo -u yq -i   '
-                            del(.listeners[] | select(.type=="http"))
-                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u synapse yq -i  '
+                                del(.listeners[] | select(.type=="http"))
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_HTTP}" ; then
-            sudo -u yq -i   '.listeners +=  [
+            sudo -u synapse yq -i   '.listeners +=  [
                                                 {
                                                     "type" : "http",
                                                     "port" : env(HTTP_LISTEN_PORT),
@@ -492,9 +492,9 @@ EOF
                             ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
 
-        sudo -u yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u synapse yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_METRICS}" ; then
-            sudo -u yq -i   '.listeners +=      [
+            sudo -u synapse yq -i   '.listeners +=      [
                                                     {
                                                         "type" : "metrics",
                                                         "port" : env(METRICS_LISTEN_PORT),
@@ -505,66 +505,66 @@ EOF
         fi
 
         if [ -n "${SECRET_FORM}" ] ; then
-            sudo -u yq -i   '
-                                .form_secret = env(SECRET_FORM)
-                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u synapse yq -i    '
+                                      .form_secret = env(SECRET_FORM)
+                                  ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
         if [ -n "${SECRET_MACAROON}" ] ; then
-            sudo -u yq -i   '
-                                macaroon_secret_key = env(SECRET_MACAROON)
-                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u synapse yq -i    '
+                                      macaroon_secret_key = env(SECRET_MACAROON)
+                                  ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
         if [ -n "${SECRET_REGISTRATION}" ] ; then
-            sudo -u yq -i   '
-                                .registration_shared_secret = env(SECRET_REGISTRATION)
-                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u synapse yq -i    '
+                                      .registration_shared_secret = env(SECRET_REGISTRATION)
+                                  ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
-        sudo -u yq -i   '
-                            .log_config = "'$(echo "${CONFIG_PATH}/${SERVER_NAME}_log.config")'"
-                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u synapse yq -i    '
+                                  .log_config = "'$(echo "${CONFIG_PATH}/${SERVER_NAME}_log.config")'"
+                              ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
-        sudo -u yq -i   '
-                            .media_store_path = env(MEDIA_PATH) |
-                            .signing_key_path = "'$(echo "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key")'" |
-                            .uploads_path = env(UPLOAD_PATH)
-                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u synapse yq -i    '
+                                  .media_store_path = env(MEDIA_PATH) |
+                                  .signing_key_path = "'$(echo "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key")'" |
+                                  .uploads_path = env(UPLOAD_PATH)
+                              ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
         case "${DB_TYPE,,}" in
             postgres* )
-                sudo -u yq -i   '
-                                    .database.txn_limit = env(DB_TRANSACTION_LIMIT) |
-                                    .database.args.host = env(DB_HOST) |
-                                    .database.args.port = env(DB_PORT) |
-                                    .database.args.database = env(DB_NAME) |
-                                    .database.args.user = env(DB_USER) |
-                                    .database.args.password = env(DB_PASS) |
-                                    .database.args.cp_min = env(DB_POOL_MIN) |
-                                    .database.args.cp_max = env(DB_POOL_MAX)
-                                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                sudo -u synapse yq -i    '
+                                          .database.txn_limit = env(DB_TRANSACTION_LIMIT) |
+                                          .database.args.host = env(DB_HOST) |
+                                          .database.args.port = env(DB_PORT) |
+                                          .database.args.database = env(DB_NAME) |
+                                          .database.args.user = env(DB_USER) |
+                                          .database.args.password = env(DB_PASS) |
+                                          .database.args.cp_min = env(DB_POOL_MIN) |
+                                          .database.args.cp_max = env(DB_POOL_MAX)
+                                      ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
             ;;
             sqlite* )
-                sudo -u yq -i   '
-                                    .database.database =  "'$(echo "${DB_SQLITE_PATH}/${DB_SQLITE_NAME}")'"
-                                ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
+                sudo -u synapse yq -i    '
+                                        .database.database =  "'$(echo "${DB_SQLITE_PATH}/${DB_SQLITE_NAME}")'"
+                                      ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
             ;;
         esac
-        sudo -u yq -i   '
-                            .enable_media_repo = env(ENABLE_MEDIA_REPO)
-                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u synapse yq -i    '
+                                .enable_media_repo = env(ENABLE_MEDIA_REPO)
+                              ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
         if var_true "${ENABLE_MEDIA_REPO}" ; then
-            sudo -u yq -i   '
-                                .dynamic_thumbnails = env(MEDIA_DYNAMIC_THUMBNAILS) |
-                                .max_upload_size = env(MEDIA_MAX_UPLOAD_SIZE) |
-                                .max_image_size = env(MEDIA_MAX_IMAGE_PIXELS) |
-                                .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
-                                .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
-                                .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
-                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u synapse yq -i    '
+                                      .dynamic_thumbnails = env(MEDIA_DYNAMIC_THUMBNAILS) |
+                                      .max_upload_size = env(MEDIA_MAX_UPLOAD_SIZE) |
+                                      .max_image_size = env(MEDIA_MAX_IMAGE_PIXELS) |
+                                      .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
+                                      .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
+                                      .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
+                                  ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
 
         if [ -d "${APPSERVICE_PATH}" ] && dir_notempty "${APPSERVICE_PATH}" ; then
-            autogenerate_appservice
+            synapse_autogenerate_appservice
         fi
 
         if [ ! -f "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key ] ; then
@@ -662,7 +662,7 @@ disable_existing_loggers: false
 EOF
         fi
 
-        sudo -u yq -i   '
+        sudo -u synapse yq -i   '
                             .handlers.file.formatter = env(LOG_FORMAT_FILE) |
                             .handlers.file.filename = "'$(echo "${LOG_PATH}/${LOG_FILE}")'" |
                             .handlers.buffer.capacity = env(LOG_BUFFER) |
