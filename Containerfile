@@ -123,6 +123,7 @@ RUN echo "" && \
             /container/data/synapse \
             /var/run/synapse \
             && \
+    echo "${SYNAPSE_VERSION}" > /var/run/synapse/version && \
     cp -R build/lib*/synapse/res/* /container/data/synapse && \
     \
     chown -R synapse:synapse \

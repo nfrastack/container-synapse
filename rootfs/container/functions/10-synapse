@@ -42,15 +42,15 @@ synapse_bootstrap_filesystem() {
 
 synapse_check_version() {
     if [ ! -f "${DATA_PATH}"/.synapse-version ]; then
-        echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${DATA_PATH}"/.synapse-version
+        echo "$(cat /var/run/synapse/version) first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${DATA_PATH}"/.synapse-version
     fi
 
-    if [ "$SYNAPSE_VERSION" != $(head -n 1 "${DATA_PATH}"/.synapse-version | awk '{print $1'}) ]; then
-        print_warn "Detected in place Synapse version $(head -n 1 "${DATA_PATH}"/.synapse-version | awk "{print $1"}) - Upgrading to ${SYNAPSE_VERSION}"
+    if [ "$(cat /var/run/synapse/version)" != $(head -n 1 "${DATA_PATH}"/.synapse-version | awk '{print $1'}) ]; then
+        print_warn "Detected in place Synapse version $(head -n 1 "${DATA_PATH}"/.synapse-version | awk "{print $1"}) - Upgrading to $(cat /var/run/synapse/version)"
         sed -i \
             --follow-symlinks \
                 "1 i\
-        ${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH}"/.synapse-version
+        $(cat /var/run/synapse/version) upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH}"/.synapse-version
     fi
 }
 
@@ -71,9 +71,9 @@ synapse_generate_configuration(){
         print_debug "Automatically generating configuration based on environment variables and defaults"
 
         if [ ! -f "${CONFIG_PATH}"/.synapse-version ] ; then
-            echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee "${CONFIG_PATH}"/.synapse-version
-        elif [ "${SYNAPSE_VERSION}" != "$(tail -n1 "${CONFIG_PATH}"/.synapse-version) | awk '{print $1}')" ] ; then
-            echo "${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${CONFIG_PATH}"/.synapse-version
+            echo "$(cat /var/run/synapse/version) first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee "${CONFIG_PATH}"/.synapse-version
+        elif [ "$(cat /var/run/synapse/version)" != "$(tail -n1 "${CONFIG_PATH}"/.synapse-version) | awk '{print $1}')" ] ; then
+            echo "$(cat /var/run/synapse/version) upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${CONFIG_PATH}"/.synapse-version
         fi
 
         if [ ! -f "${CONFIG_PATH}"/keys ] ; then
