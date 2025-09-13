@@ -1,0 +1,20 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+set -a
+prepare_service 10-synapse
+set +a
+
+SERVICE_NAME="synapse"
+
+sanity_db postgres
+db_ready postgres
+
+synapse_bootstrap_filesystem
+synapse_generate_configuration
+synapse_check_version
+
+liftoff

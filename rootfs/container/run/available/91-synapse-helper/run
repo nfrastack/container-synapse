@@ -1,16 +1,18 @@
 #!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
 
-source /assets/functions/00-container
-PROCESS_NAME="create_admin_user"
-source /assets/defaults/10-synapse
-source /assets/functions/10-synapse
+source /container/base/functions/container/init
+SERVICE_NAME="create_admin_user"
+prepare_service 10-synapse
 
 check_container_initialized
 check_service_initialized 10-synapse
 
 liftoff
 
-if var_true "${CREATE_ADMIN_USER}" && [ "${SETUP_TYPE,,}" != "manual" ] && [ "$(wc -l ${DATA_PATH}/.synapse-version)" = "1" ]; then
+if var_true "${CREATE_ADMIN_USER}" && [ "${SETUP_TYPE,,}" != "manual" ] && [ "$(wc -l "${DATA_PATH}"/.synapse-version)" = "1" ]; then
     wait_counter=0
     while ! pgrep -f "python3 -m synapse.app.homeserver" > /dev/null ; do
         sleep 5

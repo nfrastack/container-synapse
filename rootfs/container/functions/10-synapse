@@ -1,44 +1,32 @@
-#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
 
-autogenerate_appservice() {
-    touch "${CONFIG_PATH}"/appservices.yaml
-    yq -i   '
-                del(.app_service_config_files)
-            '  "${CONFIG_PATH}"/appservices.yaml
+synapse_autogenerate_appservice() {
+    sudo -u synapse "${CONFIG_PATH}"/appservices.yaml
+    sudo -u yq -i   '
+                        del(.app_service_config_files)
+                    '  "${CONFIG_PATH}"/appservices.yaml
     for appservice in ${APPSERVICE_PATH}/*.y* ; do
-        export TOIAPPSERVICE=${appservice}
-        yq -i   '
-                    .app_service_config_files += [env(TOIAPPSERVICE)]
+        export NFRAAPPSERVICE=${appservice}
+        sudo -u yq -i '
+                    .app_service_config_files += [env(NFRAAPPSERVICE)]
                 '  "${CONFIG_PATH}"/appservices.yaml
-        unset TOIAPPSERVICE
+        unset NFRAAPPSERVICE
     done
 }
 
-bootstrap_filesystem() {
-    if [ ! -d "${DATA_PATH}" ]; then
-        mkdir -p "${DATA_PATH}"
-    fi
-    if [ $(stat -c %U "${DATA_PATH}") != "synapse" ] ; then chown synapse:synapse "${DATA_PATH}" ; fi
+synapse_bootstrap_filesystem() {
+    create_folder \
+                   "${DATA_PATH},\
+                   ${APPSERVICE_PATH},\
+                   ${CONFIG_PATH},\
+                   ${CERT_PATH},\
+                   ${LOG_PATH},\
+                   ${TEMPLATE_PATH},\
+                   ${UPLOAD_PATH}" \
+                   synapse:synapse 755
 
-    if [ ! -d "${APPSERVICE_PATH}" ]; then
-        mkdir -p "${APPSERVICE_PATH}"
-    fi
-    if [ $(stat -c %U "${APPSERVICE_PATH}") != "synapse" ] ; then silent chown synapse:synapse "${APPSERVICE_PATH}" ; fi
-
-    if [ ! -d "${CERT_PATH}" ]; then
-        mkdir -p "${CERT_PATH}"
-    fi
-    if [ $(stat -c %U "${CERT_PATH}") != "synapse" ] ; then chown synapse:synapse "${CERT_PATH}" ; fi
-
-    if [ ! -d "${CONFIG_PATH}" ]; then
-        mkdir -p "${CONFIG_PATH}"
-    fi
-    if [ $(stat -c %U "${CONFIG_PATH}") != "synapse" ] ; then chown -R synapse:synapse "${CONFIG_PATH}" ; fi
-
-    if [ ! -d "${LOG_PATH}" ]; then
-        mkdir -p "${LOG_PATH}"
-    fi
-    if [ $(stat -c %U "${LOG_PATH}") != "synapse" ] ; then chown -R synapse:synapse "${LOG_PATH}" ; fi
     case "${LOG_TYPE,,}" in
         file | both )
             create_logrotate synapse "${LOG_PATH}"/"${LOG_FILE}" synapse synapse
@@ -46,40 +34,28 @@ bootstrap_filesystem() {
     esac
 
     if var_true "${ENABLE_MEDIA_REPO}" ; then
-        if [ ! -d "${MEDIA_PATH}" ]; then
-            mkdir -p "${MEDIA_PATH}"
-        fi
-        if [ $(stat -c %U "${MEDIA_PATH}") != "synapse" ] ; then chown synapse:synapse "${MEDIA_PATH}" ; fi
+        create_folder \
+                   "${MEDIA_PATH}" \
+                   synapse:synapse 755
     fi
-
-    if [ ! -d "${TEMPLATE_PATH}" ]; then
-        mkdir -p "${TEMPLATE_PATH}"
-        chown synapse:synapse "${TEMPLATE_PATH}"
-    fi
-    if dir_empty "${TEMPLATE_PATH}" ; then sudo -u synapse cp -aR /assets/synapse/templates/* "${TEMPLATE_PATH}" ; fi
-    if [ $(stat -c %U "${TEMPLATE_PATH}") != "synapse" ] ; then chown synapse:synapse "${TEMPLATE_PATH}" ; fi
-
-    if [ ! -d "${UPLOAD_PATH}" ]; then
-        mkdir -p "${UPLOAD_PATH}"
-    fi
-    if [ $(stat -c %U "${UPLOAD_PATH}") != "synapse" ] ; then chown synapse:synapse "${UPLOAD_PATH}" ; fi
 }
 
-check_version() {
+synapse_check_version() {
     if [ ! -f "${DATA_PATH}"/.synapse-version ]; then
-        echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" >> "${DATA_PATH}"/.synapse-version
+        echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${DATA_PATH}"/.synapse-version
     fi
 
     if [ "$SYNAPSE_VERSION" != $(head -n 1 "${DATA_PATH}"/.synapse-version | awk '{print $1'}) ]; then
         print_warn "Detected in place Synapse version $(head -n 1 "${DATA_PATH}"/.synapse-version | awk "{print $1"}) - Upgrading to ${SYNAPSE_VERSION}"
-        ## Do something
-        sed -i --follow-symlinks "1 i\
+        sed -i \
+            --follow-symlinks \
+                "1 i\
         ${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH}"/.synapse-version
     fi
 }
 
-generate_configuration(){
-    transform_file_var \
+synapse_generate_configuration(){
+    transform_var file \
                             ADMIN_USER \
                             ADMIN_PASS \
                             DB_HOST \
@@ -95,13 +71,13 @@ generate_configuration(){
         print_debug "Automatically generating configuration based on environment variables and defaults"
 
         if [ ! -f "${CONFIG_PATH}"/.synapse-version ] ; then
-            echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" > "${CONFIG_PATH}"/.synapse-version
+            echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee "${CONFIG_PATH}"/.synapse-version
         elif [ "${SYNAPSE_VERSION}" != "$(tail -n1 "${CONFIG_PATH}"/.synapse-version) | awk '{print $1}')" ] ; then
-            echo "${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" >> "${CONFIG_PATH}"/.synapse-version
+            echo "${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${CONFIG_PATH}"/.synapse-version
         fi
 
         if [ ! -f "${CONFIG_PATH}"/keys ] ; then
-            cat << EOF > "${CONFIG_PATH}"/keys
+            cat << EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/keys
 ## Don't delete this file. This contains your keys and allows them to persist should you not be setting any SECRET_ variables
 
 EOF
@@ -113,7 +89,7 @@ EOF
                 else
                     print_notice "[generate_configuration] No SECRET_FORM detected, automatically generating"
                     secret_form=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
-                    echo "secret_form = ${secret_form}" >> "${CONFIG_PATH}"/keys
+                    echo "secret_form = ${secret_form}" silent sudo -u synapse tee -a "${CONFIG_PATH}"/keys
             fi
             export SECRET_FORM="${secret_form}"
         fi
@@ -124,7 +100,7 @@ EOF
                 else
                     print_notice "[generate_configuration] No SECRET_MACAROON detected, automatically generating"
                     secret_macaroon=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
-                    echo "secret_macaroon = ${secret_macaroon}" >> "${CONFIG_PATH}"/keys
+                    echo "secret_macaroon = ${secret_macaroon}" | silent sudo -u synapse tee -a "${CONFIG_PATH}"/keys
             fi
             export SECRET_MACAROON="${secret_macaroon}"
         fi
@@ -135,7 +111,7 @@ EOF
                 else
                     print_notice "[generate_configuration] No SECRET_REGISTRATION detected, automatically generating"
                     secret_registration=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
-                    echo "secret_registration = ${secret_registration}" >> "${CONFIG_PATH}/keys"
+                    echo "secret_registration = ${secret_registration}" | silent sudo -u synapse tee -a "${CONFIG_PATH}/keys"
             fi
             export SECRET_REGISTRATION="${secret_registration}"
         fi
@@ -171,7 +147,7 @@ EOF
 
             sanity_var SERVER_NAME "Matrix Server Name"
             cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${CONFIG_FILE}"
-## tiredofit/synapse Synapse Configuration
+## nfrastack/synapse Synapse Configuration
 ## Some of these entries will get reset upon container restart!
 ## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
 ## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
@@ -495,90 +471,101 @@ disable_msisdn_registration: true
 
 EOF
         fi
-        yq -i   '
-                    .public_baseurl = env(SERVER_URL)
-                '  "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u yq -i   '
+                            .public_baseurl = env(SERVER_URL)
+                        '  "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
-        yq -i   'del(.listeners[] | select(.type=="http"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u yq -i   '
+                            del(.listeners[] | select(.type=="http"))
+                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_HTTP}" ; then
-            yq -i   '.listeners +=   [
-                                        {
-                                            "type" : "http",
-                                            "port" : env(HTTP_LISTEN_PORT),
-                                            "tls" : env(HTTP_ENABLE_TLS),
-                                            "x_forwarded" : env(HTTP_ENABLE_X_FORWARDED),
-                                            "bind_addresses" : [ "'$(echo ${HTTP_LISTEN_IP//,/\",\"})'" ],
-                                            "resources" :   [
-                                                                {
-                                                                    "names" : [ "'$(echo ${HTTP_MODE//,/\",\"})'" ],
-                                                                    "compress" : env(HTTP_ENABLE_COMPRESSION)
-                                                                }
-                                                            ]
-                                        }
-                                    ]
-                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u yq -i   '.listeners +=  [
+                                                {
+                                                    "type" : "http",
+                                                    "port" : env(HTTP_LISTEN_PORT),
+                                                    "tls" : env(HTTP_ENABLE_TLS),
+                                                    "x_forwarded" : env(HTTP_ENABLE_X_FORWARDED),
+                                                    "bind_addresses" : [ "'$(echo ${HTTP_LISTEN_IP//,/\",\"})'" ],
+                                                    "resources" :   [
+                                                                        {
+                                                                            "names" : [ "'$(echo ${HTTP_MODE//,/\",\"})'" ],
+                                                                            "compress" : env(HTTP_ENABLE_COMPRESSION)
+                                                                        }
+                                                                    ]
+                                                }
+                                            ]
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
 
-        yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_METRICS}" ; then
-            yq -i   '.listeners +=   [
-                                        {
-                                            "type" : "metrics",
-                                            "port" : env(METRICS_LISTEN_PORT),
-                                            "bind_addresses" : [ "'$(echo ${METRICS_LISTEN_IP//,/\",\"})'" ]
-                                        }
-                                    ]
-                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u yq -i   '.listeners +=      [
+                                                    {
+                                                        "type" : "metrics",
+                                                        "port" : env(METRICS_LISTEN_PORT),
+                                                        "bind_addresses" : [ "'$(echo ${METRICS_LISTEN_IP//,/\",\"})'" ]
+                                                    }
+                                                ]
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
 
         if [ -n "${SECRET_FORM}" ] ; then
-            yq -i '.form_secret = env(SECRET_FORM)' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u yq -i   '
+                                .form_secret = env(SECRET_FORM)
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
         if [ -n "${SECRET_MACAROON}" ] ; then
-            yq -i '.macaroon_secret_key = env(SECRET_MACAROON)' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u yq -i   '
+                                macaroon_secret_key = env(SECRET_MACAROON)
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
         if [ -n "${SECRET_REGISTRATION}" ] ; then
-            yq -i '.registration_shared_secret = env(SECRET_REGISTRATION)' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u yq -i   '
+                                .registration_shared_secret = env(SECRET_REGISTRATION)
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
-        yq -i '.log_config = "'$(echo "${CONFIG_PATH}/${SERVER_NAME}_log.config")'"' "${CONFIG_PATH}"/"${CONFIG_FILE}"
-        yq -i   '
-                    .media_store_path = env(MEDIA_PATH) |
-                    .signing_key_path = "'$(echo "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key")'" |
-                    .uploads_path = env(UPLOAD_PATH)
-                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u yq -i   '
+                            .log_config = "'$(echo "${CONFIG_PATH}/${SERVER_NAME}_log.config")'"
+                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        sudo -u yq -i   '
+                            .media_store_path = env(MEDIA_PATH) |
+                            .signing_key_path = "'$(echo "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key")'" |
+                            .uploads_path = env(UPLOAD_PATH)
+                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
         case "${DB_TYPE,,}" in
             postgres* )
-                yq -i   '
-                            .database.txn_limit = env(DB_TRANSACTION_LIMIT) |
-                            .database.args.host = env(DB_HOST) |
-                            .database.args.port = env(DB_PORT) |
-                            .database.args.database = env(DB_NAME) |
-                            .database.args.user = env(DB_USER) |
-                            .database.args.password = env(DB_PASS) |
-                            .database.args.cp_min = env(DB_POOL_MIN) |
-                            .database.args.cp_max = env(DB_POOL_MAX)
-                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                sudo -u yq -i   '
+                                    .database.txn_limit = env(DB_TRANSACTION_LIMIT) |
+                                    .database.args.host = env(DB_HOST) |
+                                    .database.args.port = env(DB_PORT) |
+                                    .database.args.database = env(DB_NAME) |
+                                    .database.args.user = env(DB_USER) |
+                                    .database.args.password = env(DB_PASS) |
+                                    .database.args.cp_min = env(DB_POOL_MIN) |
+                                    .database.args.cp_max = env(DB_POOL_MAX)
+                                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
             ;;
             sqlite* )
-                yq -i   '
-                            .database.database =  "'$(echo "${DB_SQLITE_PATH}/${DB_SQLITE_NAME}")'"
-                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
+                sudo -u yq -i   '
+                                    .database.database =  "'$(echo "${DB_SQLITE_PATH}/${DB_SQLITE_NAME}")'"
+                                ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
             ;;
         esac
-        yq -i   '
-                    .enable_media_repo = env(ENABLE_MEDIA_REPO)
-                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -u yq -i   '
+                            .enable_media_repo = env(ENABLE_MEDIA_REPO)
+                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
         if var_true "${ENABLE_MEDIA_REPO}" ; then
-            yq -i   '
-                        .dynamic_thumbnails = env(MEDIA_DYNAMIC_THUMBNAILS) |
-                        .max_upload_size = env(MEDIA_MAX_UPLOAD_SIZE) |
-                        .max_image_size = env(MEDIA_MAX_IMAGE_PIXELS) |
-                        .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
-                        .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
-                        .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
-                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            sudo -u yq -i   '
+                                .dynamic_thumbnails = env(MEDIA_DYNAMIC_THUMBNAILS) |
+                                .max_upload_size = env(MEDIA_MAX_UPLOAD_SIZE) |
+                                .max_image_size = env(MEDIA_MAX_IMAGE_PIXELS) |
+                                .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
+                                .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
+                                .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
 
         if [ -d "${APPSERVICE_PATH}" ] && dir_notempty "${APPSERVICE_PATH}" ; then
@@ -628,7 +615,7 @@ EOF
 
         if  [ ! -f "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config ] || var_true "${REFRESH_CONFIGURATION}" ; then
             cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
-## tiredofit/synapse Synapse Logging Configuration
+## nfrastack/synapse Synapse Logging Configuration
 ## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
 ## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
 #
@@ -680,20 +667,20 @@ disable_existing_loggers: false
 EOF
         fi
 
-        yq -i '
-            .handlers.file.formatter = env(LOG_FORMAT_FILE) |
-            .handlers.file.filename = "'$(echo "${LOG_PATH}/${LOG_FILE}")'" |
-            .handlers.buffer.capacity = env(LOG_BUFFER) |
-            .handlers.buffer.flushLevel = env(LOG_LEVEL_FLUSH) |
-            .handlers.buffer.period = env(LOG_INTERVAL_FLUSH_FORCE) |
-            .handlers.console.formatter = env(LOG_FORMAT_CONSOLE) |
-            .loggers.ldap3.level = env(LOG_LEVEL_LDAP) |
-            .loggers.ldap_auth_provider.level = env(LOG_LEVEL_LDAP_AUTH_PROVIDER) |
-            .loggers.synapse.storage.SQL.level = env(LOG_LEVEL_SQL) |
-            .loggers.shared_secret_authenticator.level = env(LOG_LEVEL_SHARED_SECRET_AUTHENTICATOR) |
-            .root.level = env(LOG_LEVEL) |
-            .root.handlers = [ "'$(echo "${LOG_TYPE,,//,/\",\"}")'" ]
-        ' "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
+        sudo -u yq -i   '
+                            .handlers.file.formatter = env(LOG_FORMAT_FILE) |
+                            .handlers.file.filename = "'$(echo "${LOG_PATH}/${LOG_FILE}")'" |
+                            .handlers.buffer.capacity = env(LOG_BUFFER) |
+                            .handlers.buffer.flushLevel = env(LOG_LEVEL_FLUSH) |
+                            .handlers.buffer.period = env(LOG_INTERVAL_FLUSH_FORCE) |
+                            .handlers.console.formatter = env(LOG_FORMAT_CONSOLE) |
+                            .loggers.ldap3.level = env(LOG_LEVEL_LDAP) |
+                            .loggers.ldap_auth_provider.level = env(LOG_LEVEL_LDAP_AUTH_PROVIDER) |
+                            .loggers.synapse.storage.SQL.level = env(LOG_LEVEL_SQL) |
+                            .loggers.shared_secret_authenticator.level = env(LOG_LEVEL_SHARED_SECRET_AUTHENTICATOR) |
+                            .root.level = env(LOG_LEVEL) |
+                            .root.handlers = [ "'$(echo "${LOG_TYPE,,//,/\",\"}")'" ]
+                        ' "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
     else
         print_debug "Manual mode detected - Using '${CONFIG_PATH}/${CONFIG_FILE}' for configuration"
     fi

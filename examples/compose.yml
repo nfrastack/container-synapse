@@ -1,8 +1,7 @@
-version: '2.4'
 services:
 
   synapse-app:
-    image: tiredofit/synapse:latest
+    image: docker.io/nfrastack/synapse:latest
     container_name: synapse-app
     labels:
       - traefik.enable=true
@@ -10,7 +9,7 @@ services:
       - traefik.http.services.synapse.loadbalancer.server.port=8008
     environment:
       - TIMEZONE=America/Vancouver
-      - CONTAINER_NAME=synapse-app
+
       - SETUP_TYPE=AUTO
 
       - DB_TYPE=postgresql
@@ -28,14 +27,12 @@ services:
     restart: always
 
   synapse-db:
-    image: tiredofit/postgres:15
+    image: docker.io/tiredofit/postgres:17
     container_name: synapse-db
     volumes:
       - ./db/postgresql:/var/lib/postgresql
     environment:
       - TIMEZONE=America/Vancouver
-      - CONTAINER_NAME=synapse-db
-      - ZABBIX_AGENT_TYPE=classic
 
       - POSTGRES_DB=synapse
       - POSTGRES_USER=synapse
@@ -46,13 +43,13 @@ services:
     restart: always
 
   synapse-db-backup:
-    image: tiredofit/db-backup
+    image: docker.io/tiredofit/db-backup
     container_name: synapse-db-backup
     volumes:
       - ./dbbackup:/backup
     environment:
       - TIMEZONE=America/Vancouver
-      - CONTAINER_NAME=synapse-db-backup
+
       - DB_HOST=synapse-db
       - DB_TYPE=postgres
       - DB_NAME=synapse

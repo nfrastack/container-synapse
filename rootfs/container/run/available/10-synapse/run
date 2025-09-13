@@ -1,8 +1,11 @@
 #!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2025 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
 
-source /assets/functions/00-container
-PROCESS_NAME="synapse"
-prepare_service defaults single
+source /container/base/functions/container/init
+SERVICE_NAME="synapse"
+prepare_service 10-synapse
 
 check_container_initialized
 check_service_initialized init
@@ -14,5 +17,4 @@ print_start "Starting Synapse ${SYNAPSE_VERSION}"
 exec s6-setuidgid synapse synctl --no-daemonize \
                                             start \
                                             ${CONFIG_PATH}
-                                            #"${CONFIG_PATH}"/"${CONFIG_FILE}"
 
