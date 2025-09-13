@@ -19,11 +19,11 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    SYNAPSE_VERSION="1.138.0" \
+    SYNAPSE_VERSION="v1.138.0" \
     PROVIDDER_LDAP_VERSION="v0.3.0" \
     PROVIDER_SHARED_SECRET_VERSION="2.0.3" \
     SYNAPSE_REPO_URL="https://github.com/element-hq/synapse" \
-    PROVIDDER_LDAP_REPO_URL="https://github.com/matrix-org/matrix-synapse-ldap3" \
+    PROVIDER_LDAP_REPO_URL="https://github.com/matrix-org/matrix-synapse-ldap3" \
     PROVIDER_SHARED_SECRET_REPO_URL="https://github.com/devture/matrix-synapse-shared-secret-auth"
 
 COPY CHANGELOG.md /usr/src/container/CHANGELOG.md
@@ -137,11 +137,11 @@ RUN echo "" && \
                         --output-fd 1 \
                         && \
     pip install --break-system-packages --upgrade dist/*.whl && \
-    container_build_log add "" "${PROVIDDER_LDAP_VERSION}" "${PROVIDER_LDAP_REPO_URL}" && \
+    container_build_log add "Synapse LDAP Authentication Provider" "${PROVIDDER_LDAP_VERSION}" "${PROVIDER_LDAP_REPO_URL}" && \
     \
     clone_git_repo "${PROVIDER_SHARED_SECRET_REPO_URL}" "${PROVIDER_SHARED_SECRET_VERSION}" && \
     cp -R shared_secret_authenticator.py /usr/lib/python*/ && \
-    container_build_log add "" "${PROVIDER_SHARED_SECRET_VERSION}" "${PROVIDER_SHARED_SECRET_REPO_URL}" && \
+    container_build_log add "Synapse Shared Secret provider" "${PROVIDER_SHARED_SECRET_VERSION}" "${PROVIDER_SHARED_SECRET_REPO_URL}" && \
     \
     package remove \
                     SYNAPSE_BUILD_DEPS \

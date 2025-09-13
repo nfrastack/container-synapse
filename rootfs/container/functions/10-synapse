@@ -8,11 +8,11 @@ synapse_autogenerate_appservice() {
                         del(.app_service_config_files)
                     '  "${CONFIG_PATH}"/appservices.yaml
     for appservice in ${APPSERVICE_PATH}/*.y* ; do
-        export NFRAAPPSERVICE=${appservice}
+        export NFRA_APPSERVICE=${appservice}
         sudo -u yq -i '
-                    .app_service_config_files += [env(NFRAAPPSERVICE)]
+                    .app_service_config_files += [env(NFRA_APPSERVICE)]
                 '  "${CONFIG_PATH}"/appservices.yaml
-        unset NFRAAPPSERVICE
+        unset NFRA_APPSERVICE
     done
 }
 
@@ -211,11 +211,6 @@ ${synapse_db}
 #          # - authenticate using 'm.login.password' requests, instead of 'com.devture.shared_secret_auth' requests
 #          # com_devture_shared_secret_auth_support_enabled: false
 #
-#
-#password_providers:
-#  - module: "rest_auth_provider.RestAuthProvider"
-#    config:
-#      endpoint: "http://rest.example.com"
 #
 #oidc_providers:
 #  - idp_id: auth-example-com
