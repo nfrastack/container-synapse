@@ -12,7 +12,7 @@ check_service_initialized init
 
 liftoff
 
-print_start "Starting Synapse (cat /var/run/synapse/verrsion)"
+print_start "Starting Synapse $(cat /var/run/synapse/version)"
 
 exec s6-setuidgid synapse synctl --no-daemonize \
                                             start \
