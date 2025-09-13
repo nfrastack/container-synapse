@@ -1,7 +1,7 @@
 ## 0.9.0pre 2025-09-13 <code at nfrastack dot com>
 
    ### Changed
-      - Switch to nfrastack/nginx base image
+      - Switch to nfrastack/base base image
       - Alpine 3.22
       - Synapse 1.138.0
       - Removed S3 Provider

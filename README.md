@@ -74,8 +74,8 @@ Images are built for `amd64` by default, with optional support for `arm64` and o
 
 The following directories are used for configuration and can be mapped for persistent storage.
 
-| Directory | Description |
-| --------- | ----------- |
+| Directory         | Description         |
+| ----------------- | ------------------- |
 | `/data/certs/`    | Signing Keys        |
 | `/data/config`    | Configuration Files |
 | `/data/media`     | Media / Assets      |
@@ -95,7 +95,6 @@ Be sure to view the following repositories to understand all the customizable op
 | Image                                                   | Description      |
 | ------------------------------------------------------- | ---------------- |
 | [OS Base](https://github.com/nfrastack/container-base/) | Base Image       |
-| [Nginx](https://github.com/nfrastack/container-nginx/)  | Web Server Image |
 
 Below is the complete list of available options that can be used to customize your installation.
 
@@ -183,15 +182,15 @@ Below is the complete list of available options that can be used to customize yo
 
 ## Users and Groups
 
-| Type  | Name  | ID   |
-| ----- | ----- | ---- |
+| Type  | Name      | ID   |
+| ----- | --------- | ---- |
 | User  | `synapse` | 8080 |
 | Group | `synapse` | 8080 |
 
 ### Networking
 
-| Port | Protocol | Description |
-| ---- | -------- | ----------- |
+| Port   | Protocol | Description        |
+| ------ | -------- | ------------------ |
 | `8008` | `tcp`    | Synapse Homeserver |
 
 * * *
