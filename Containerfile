@@ -3,11 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 ARG \
-    BASE_IMAGE \
-    DISTRO \
-    DISTRO_VARIANT
+    BASE_IMAGE
 
-FROM ${BASE_IMAGE}:${DISTRO}_${DISTRO_VARIANT}
+FROM ${BASE_IMAGE}
 
 LABEL \
         org.opencontainers.image.title="Synapse" \
@@ -20,7 +18,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    SYNAPSE_VERSION="v1.139.0" \
+    SYNAPSE_VERSION="v1.139.1" \
     PROVIDDER_LDAP_VERSION="v0.3.0" \
     PROVIDER_SHARED_SECRET_VERSION="2.0.3" \
     SYNAPSE_REPO_URL="https://github.com/element-hq/synapse" \

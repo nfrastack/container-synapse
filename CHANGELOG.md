@@ -3,7 +3,7 @@
    ### Changed
       - Switch to nfrastack/base base image
       - Alpine 3.22
-      - Synapse 1.138.0
+      - Synapse 1.139.1
       - Removed S3 Provider
       - Removed REST Auth Provider
 
