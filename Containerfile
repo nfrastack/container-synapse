@@ -96,7 +96,6 @@ RUN echo "" && \
                                 py3-yaml \
                                 sed \
                                 sqlite \
-                                yq-go \
                             " \
                             && \
     source /container/base/functions/container/build && \
@@ -108,6 +107,8 @@ RUN echo "" && \
                         SYNAPSE_BUILD_DEPS \
                         SYNAPSE_RUN_DEPS \
                     && \
+    package build go && \
+    package build yq && \
     \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
     gpep517 build-wheel \
