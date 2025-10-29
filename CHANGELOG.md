@@ -1,9 +1,9 @@
 ## 0.9.0pre 2025-09-13 <code at nfrastack dot com>
 
    ### Changed
-      - Switch to nfrastack/base base image
+      - Switch to nfrastack/base image
       - Alpine 3.22
-      - Synapse 1.140.0
+      - Synapse 1.141.0
       - Removed S3 Provider
       - Removed REST Auth Provider
 

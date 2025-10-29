@@ -18,7 +18,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    SYNAPSE_VERSION="v1.140.0" \
+    SYNAPSE_VERSION="v1.141.0" \
     PROVIDDER_LDAP_VERSION="v0.3.0" \
     PROVIDER_SHARED_SECRET_VERSION="2.0.3" \
     SYNAPSE_REPO_URL="https://github.com/element-hq/synapse" \
@@ -112,7 +112,7 @@ RUN echo "" && \
     \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
     gpep517 build-wheel \
-             		    --wheel-dir dist \
+		    --wheel-dir dist \
                         --output-fd 1 \
                         && \
     pip install \
@@ -134,7 +134,7 @@ RUN echo "" && \
     container_build_log add "Synapse" "${SYNAPSE_VERSION}" "${SYNAPSE_REPO_URL}" && \
     clone_git_repo "${PROVIDER_LDAP_REPO_URL}" "${PROVIDER_LDAP_VERSION}" && \
     gpep517 build-wheel \
-               		    --wheel-dir dist \
+		        --wheel-dir dist \
                         --output-fd 1 \
                         && \
     pip install --break-system-packages --upgrade dist/*.whl && \
