@@ -12,7 +12,7 @@ check_service_initialized 10-synapse
 
 liftoff
 
-if var_true "${CREATE_ADMIN_USER}" && [ "${SETUP_TYPE,,}" != "manual" ] && [ "$(wc -l "${DATA_PATH}"/.synapse-version)" = "1" ]; then
+if var_true "${CREATE_ADMIN_USER}" && [ "${SETUP_TYPE,,}" != "manual" ] && [ "$(wc -l "${DATA_PATH%/}"/.synapse-version)" = "1" ]; then
     wait_counter=0
     while ! pgrep -f "python3 -m synapse.app.homeserver" > /dev/null ; do
         sleep 5
@@ -26,7 +26,7 @@ if var_true "${CREATE_ADMIN_USER}" && [ "${SETUP_TYPE,,}" != "manual" ] && [ "$(
                                         -u "${ADMIN_USER}" \
                                         -p "${ADMIN_PASS}" \
                                         -a \
-                                        -c "${CONFIG_PATH}"/"${CONFIG_FILE}" \
+                                        -c "${CONFIG_PATH%/}"/"${CONFIG_FILE}" \
                                         http://localhost:${HTTP_LISTEN_PORT}
 fi
 

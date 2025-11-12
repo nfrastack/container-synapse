@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: MIT
 
 synapse_autogenerate_appservice() {
-    sudo -u synapse touch "${CONFIG_PATH}"/appservices.yaml
+    sudo -u synapse touch "${CONFIG_PATH%/}"/appservices.yaml
     sudo -Eu synapse yq -i      '
                                     del(.app_service_config_files)
-                                '  "${CONFIG_PATH}"/appservices.yaml
+                                '  "${CONFIG_PATH%/}"/appservices.yaml
     for appservice in ${APPSERVICE_PATH}/*.y* ; do
         export NFRA_APPSERVICE=${appservice}
         sudo -Eu synapse yq -i  '
                                     .app_service_config_files += [env(NFRA_APPSERVICE)]
-                                '  "${CONFIG_PATH}"/appservices.yaml
+                                '  "${CONFIG_PATH%/}"/appservices.yaml
         unset NFRA_APPSERVICE
     done
 }
@@ -29,7 +29,7 @@ synapse_bootstrap_filesystem() {
 
     case "${LOG_TYPE,,}" in
         file | both )
-            create_logrotate synapse "${LOG_PATH}"/"${LOG_FILE}" synapse synapse
+            create_logrotate synapse "${LOG_PATH%/}"/"${LOG_FILE}" synapse synapse
         ;;
     esac
 
@@ -41,16 +41,16 @@ synapse_bootstrap_filesystem() {
 }
 
 synapse_check_version() {
-    if [ ! -f "${DATA_PATH}"/.synapse-version ]; then
-        echo "$(cat /var/run/synapse/version) first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${DATA_PATH}"/.synapse-version
+    if [ ! -f "${DATA_PATH%/}"/.synapse-version ]; then
+        echo "$(cat /var/run/synapse/version) first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${DATA_PATH%/}"/.synapse-version
     fi
 
-    if [ "$(cat /var/run/synapse/version)" != $(head -n 1 "${DATA_PATH}"/.synapse-version | awk '{print $1'}) ]; then
-        print_warn "Detected in place Synapse version $(head -n 1 "${DATA_PATH}"/.synapse-version | awk "{print $1"}) - Upgrading to $(cat /var/run/synapse/version)"
+    if [ "$(cat /var/run/synapse/version)" != $(head -n 1 "${DATA_PATH%/}"/.synapse-version | awk '{print $1'}) ]; then
+        print_warn "Detected in place Synapse version $(head -n 1 "${DATA_PATH%/}"/.synapse-version | awk "{print $1"}) - Upgrading to $(cat /var/run/synapse/version)"
         sed -i \
             --follow-symlinks \
                 "1 i\
-        $(cat /var/run/synapse/version) upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH}"/.synapse-version
+        $(cat /var/run/synapse/version) upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH%/}"/.synapse-version
     fi
 }
 
@@ -70,44 +70,44 @@ synapse_generate_configuration(){
     if [ "${SETUP_MODE,,}" = "auto" ] ; then
         print_debug "Automatically generating configuration based on environment variables and defaults"
 
-        if [ ! -f "${CONFIG_PATH}"/.synapse-version ] ; then
-            echo "$(cat /var/run/synapse/version) first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee "${CONFIG_PATH}"/.synapse-version
-        elif [ "$(cat /var/run/synapse/version)" != "$(tail -n1 "${CONFIG_PATH}"/.synapse-version) | awk '{print $1}')" ] ; then
-            echo "$(cat /var/run/synapse/version) upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${CONFIG_PATH}"/.synapse-version
+        if [ ! -f "${CONFIG_PATH%/}"/.synapse-version ] ; then
+            echo "$(cat /var/run/synapse/version) first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee "${CONFIG_PATH%/}"/.synapse-version
+        elif [ "$(cat /var/run/synapse/version)" != "$(tail -n1 "${CONFIG_PATH%/}"/.synapse-version) | awk '{print $1}')" ] ; then
+            echo "$(cat /var/run/synapse/version) upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" | silent tee -a "${CONFIG_PATH%/}"/.synapse-version
         fi
 
-        if [ ! -f "${CONFIG_PATH}"/keys ] ; then
-            cat << EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/keys
+        if [ ! -f "${CONFIG_PATH%/}"/keys ] ; then
+            cat << EOF | silent sudo -u synapse tee "${CONFIG_PATH%/}"/keys
 ## Don't delete this file. This contains your keys and allows them to persist should you not be setting any SECRET_ variables
 
 EOF
         fi
 
         if [ -z "${SECRET_FORM}" ] ; then
-            if grep -q "secret_form = " ${CONFIG_PATH}"/keys" ; then
-                    secret_form="$(grep "secret_form =" "${CONFIG_PATH}"/keys | cut -d = -f 2 | xargs)"
+            if grep -q "secret_form = " ${CONFIG_PATH%/}"/keys" ; then
+                    secret_form="$(grep "secret_form =" "${CONFIG_PATH%/}"/keys | cut -d = -f 2 | xargs)"
                 else
                     print_notice "[generate_configuration] No SECRET_FORM detected, automatically generating"
                     secret_form=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
-                    echo "secret_form = ${secret_form}" silent sudo -u synapse tee -a "${CONFIG_PATH}"/keys
+                    echo "secret_form = ${secret_form}" silent sudo -u synapse tee -a "${CONFIG_PATH%/}"/keys
             fi
             export SECRET_FORM="${secret_form}"
         fi
 
         if [ -z "${SECRET_MACAROON}" ] ; then
-            if grep -q "secret_macaroon = " ${CONFIG_PATH}"/keys" ; then
-                    secret_macaroon="$(grep "secret_macaroon =" "${CONFIG_PATH}"/keys | cut -d = -f 2 | xargs)"
+            if grep -q "secret_macaroon = " ${CONFIG_PATH%/}"/keys" ; then
+                    secret_macaroon="$(grep "secret_macaroon =" "${CONFIG_PATH%/}"/keys | cut -d = -f 2 | xargs)"
                 else
                     print_notice "[generate_configuration] No SECRET_MACAROON detected, automatically generating"
                     secret_macaroon=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
-                    echo "secret_macaroon = ${secret_macaroon}" | silent sudo -u synapse tee -a "${CONFIG_PATH}"/keys
+                    echo "secret_macaroon = ${secret_macaroon}" | silent sudo -u synapse tee -a "${CONFIG_PATH%/}"/keys
             fi
             export SECRET_MACAROON="${secret_macaroon}"
         fi
 
         if [ -z "${SECRET_REGISTRATION}" ] ; then
-            if grep -q "secret_registration = " ${CONFIG_PATH}"/keys" ; then
-                    secret_registration="$(grep "secret_registration =" "${CONFIG_PATH}"/keys | cut -d = -f 2 | xargs)"
+            if grep -q "secret_registration = " ${CONFIG_PATH%/}"/keys" ; then
+                    secret_registration="$(grep "secret_registration =" "${CONFIG_PATH%/}"/keys | cut -d = -f 2 | xargs)"
                 else
                     print_notice "[generate_configuration] No SECRET_REGISTRATION detected, automatically generating"
                     secret_registration=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
@@ -116,7 +116,7 @@ EOF
             export SECRET_REGISTRATION="${secret_registration}"
         fi
 
-        if  [ ! -f "${CONFIG_PATH}"/"${CONFIG_FILE}" ] || var_true "${REFRESH_CONFIGURATION}"; then
+        if  [ ! -f "${CONFIG_PATH%/}"/"${CONFIG_FILE}" ] || var_true "${REFRESH_CONFIGURATION}"; then
             case "${DB_TYPE,,}" in
                 postgres* )
                     synapse_db=$(cat <<EOF
@@ -146,7 +146,7 @@ EOF
             esac
 
             sanity_var SERVER_NAME "Matrix Server Name"
-            cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
 ## nfrastack/synapse Synapse Configuration
 ## Some of these entries will get reset upon container restart!
 ## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
@@ -468,11 +468,11 @@ EOF
         fi
         sudo -Eu synapse yq -i      '
                                         .public_baseurl = env(SERVER_URL)
-                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                    ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
 
         sudo -Eu synapse yq -i      '
                                         del(.listeners[] | select(.type=="http"))
-                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                    ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_HTTP}" ; then
             sudo -Eu synapse yq -i  '.listeners +=      [
                                                             {
@@ -489,10 +489,10 @@ EOF
                                                                                 ]
                                                             }
                                                         ]
-                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                    ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         fi
 
-        sudo -Eu synapse yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        sudo -Eu synapse yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_METRICS}" ; then
             sudo -Eu synapse yq -i  '.listeners +=          [
                                                                 {
@@ -501,33 +501,33 @@ EOF
                                                                     "bind_addresses" : [ "'$(echo ${METRICS_LISTEN_IP//,/\",\"})'" ]
                                                                 }
                                                             ]
-                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                    ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         fi
 
         if [ -n "${SECRET_FORM}" ] ; then
             sudo -Eu synapse yq -i    '
                                       .form_secret = env(SECRET_FORM)
-                                  ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                  ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         fi
         if [ -n "${SECRET_MACAROON}" ] ; then
             sudo -Eu synapse yq -i      '
                                             .macaroon_secret_key = env(SECRET_MACAROON)
-                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                        ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         fi
         if [ -n "${SECRET_REGISTRATION}" ] ; then
             sudo -Eu synapse yq -i      '
                                             .registration_shared_secret = env(SECRET_REGISTRATION)
-                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                        ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         fi
         sudo -Eu synapse yq -i          '
                                             .log_config = "'$(echo "${CONFIG_PATH}/${SERVER_NAME}_log.config")'"
-                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                        ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
 
         sudo -Eu synapse yq -i          '
                                             .media_store_path = env(MEDIA_PATH) |
                                             .signing_key_path = "'$(echo "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key")'" |
                                             .uploads_path = env(UPLOAD_PATH)
-                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                        ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
 
         case "${DB_TYPE,,}" in
             postgres* )
@@ -540,17 +540,17 @@ EOF
                                                 .database.args.password = env(DB_PASS) |
                                                 .database.args.cp_min = env(DB_POOL_MIN) |
                                                 .database.args.cp_max = env(DB_POOL_MAX)
-                                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                            ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
             ;;
             sqlite* )
                 sudo -Eu synapse yq -i      '
                                                 .database.database =  "'$(echo "${DB_SQLITE_PATH}/${DB_SQLITE_NAME}")'"
-                                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
+                                            ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}" -o yaml
             ;;
         esac
         sudo -Eu synapse yq -i      '
                                         .enable_media_repo = env(ENABLE_MEDIA_REPO)
-                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                    ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
 
         if var_true "${ENABLE_MEDIA_REPO}" ; then
             sudo -Eu synapse yq -i      '
@@ -560,15 +560,15 @@ EOF
                                             .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
                                             .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
                                             .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
-                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                        ' "${CONFIG_PATH%/}"/"${CONFIG_FILE}"
         fi
 
         if [ -d "${APPSERVICE_PATH}" ] && dir_notempty "${APPSERVICE_PATH}" ; then
             synapse_autogenerate_appservice
         fi
 
-        if [ ! -f "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key ] ; then
-            /usr/bin/generate_signing_key | silent sudo -u synapse tee "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key
+        if [ ! -f "${CERT_PATH%/}"/"${SERVER_NAME,,// //}"_signing.key ] ; then
+            /usr/bin/generate_signing_key | silent sudo -u synapse tee "${CERT_PATH%/}"/"${SERVER_NAME,,// //}"_signing.key
         fi
 
         case "${LOG_FORMAT,,}" in
@@ -608,8 +608,8 @@ EOF
             export LOG_TYPE="buffer"
         fi
 
-        if  [ ! -f "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config ] || var_true "${REFRESH_CONFIGURATION}" ; then
-            cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
+        if  [ ! -f "${CONFIG_PATH%/}"/"${SERVER_NAME}"_log.config ] || var_true "${REFRESH_CONFIGURATION}" ; then
+            cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH%/}"/"${SERVER_NAME}"_log.config
 ## nfrastack/synapse Synapse Logging Configuration
 ## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
 ## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
@@ -675,7 +675,7 @@ EOF
                                         .loggers.shared_secret_authenticator.level = env(LOG_LEVEL_SHARED_SECRET_AUTHENTICATOR) |
                                         .root.level = env(LOG_LEVEL) |
                                         .root.handlers = [ "'$(echo "${LOG_TYPE,,//,/\",\"}")'" ]
-                                    ' "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
+                                    ' "${CONFIG_PATH%/}"/"${SERVER_NAME}"_log.config
     else
         print_debug "Manual mode detected - Using '${CONFIG_PATH}/${CONFIG_FILE}' for configuration"
     fi
