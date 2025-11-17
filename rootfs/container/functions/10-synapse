@@ -7,7 +7,7 @@ synapse_autogenerate_appservice() {
     sudo -Eu synapse yq -i      '
                                     del(.app_service_config_files)
                                 '  "${CONFIG_PATH%/}"/appservices.yaml
-    for appservice in ${APPSERVICE_PATH}/*.y* ; do
+    for appservice in ${APPSERVICE_PATH%/}/*.y* ; do
         export NFRA_APPSERVICE=${appservice}
         sudo -Eu synapse yq -i  '
                                     .app_service_config_files += [env(NFRA_APPSERVICE)]

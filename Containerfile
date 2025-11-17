@@ -30,6 +30,7 @@ COPY LICENSE /usr/src/container/LICENSE
 COPY README.md /usr/src/container/README.md
 
 ENV \
+    CONTAINER_ENABLE_SCHEDULING=TRUE \
     IMAGE_NAME="nfrastack/synapse" \
     IMAGE_REPO_URL="https://github.com/nfrastack/container-synapse/"
 
