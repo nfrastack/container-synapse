@@ -73,6 +73,7 @@ RUN echo "" && \
                                 py3-jwt \
                                 py3-ldap3 \
                                 py3-lxml \
+                                py3-maturin \
                                 py3-matrix-common \
                                 py3-msgpack \
                                 py3-netaddr \
