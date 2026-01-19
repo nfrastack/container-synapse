@@ -85,14 +85,14 @@ RUN echo "" && \
                                 py3-pydantic \
                                 py3-pymacaroons \
                                 py3-pynacl \
-                                py3-saml2 \
+                                #py3-saml2 \
                                 py3-service_identity \
                                 py3-signedjson \
                                 py3-sortedcontainers \
                                 py3-treq \
                                 py3-tqdm \
                                 py3-twisted \
-                                py3-txacme \
+                                #py3-txacme \
                                 py3-txredisapi \
                                 py3-typing-extensions \
                                 py3-yaml \
@@ -113,8 +113,9 @@ RUN echo "" && \
     package build yq && \
     \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
+    cd /usr/src/synapse && \
     gpep517 build-wheel \
-		    --wheel-dir dist \
+		                --wheel-dir dist \
                         --output-fd 1 \
                         && \
     pip install \
@@ -126,17 +127,16 @@ RUN echo "" && \
             /var/run/synapse \
             && \
     echo "${SYNAPSE_VERSION}" > /var/run/synapse/version && \
-    cp -R build/lib*/synapse/res/* /container/data/synapse && \
-    \
+    cp -R /usr/src/synapse/synapse/res/* /container/data/synapse && \
     chown -R synapse:synapse \
                                 /container/data/synapse \
                                 /var/run/synapse \
                                 && \
-    \
     container_build_log add "Synapse" "${SYNAPSE_VERSION}" "${SYNAPSE_REPO_URL}" && \
+    \
     clone_git_repo "${PROVIDER_LDAP_REPO_URL}" "${PROVIDER_LDAP_VERSION}" && \
     gpep517 build-wheel \
-		        --wheel-dir dist \
+		                --wheel-dir dist \
                         --output-fd 1 \
                         && \
     pip install --break-system-packages --upgrade dist/*.whl && \
