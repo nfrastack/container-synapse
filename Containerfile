@@ -87,6 +87,7 @@ RUN echo "" && \
                                 py3-pynacl \
                                 #py3-saml2 \
                                 py3-service_identity \
+                                py3-setuptools-rust \
                                 py3-signedjson \
                                 py3-sortedcontainers \
                                 py3-treq \
