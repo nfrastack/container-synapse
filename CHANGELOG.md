@@ -1,11 +1,12 @@
-## 0.9.0pre 2025-09-13 <code at nfrastack dot com>
+## 0.9.0 2026-02-24 <code at nfastack dot com>
 
-   ### Changed
+   ### Added
       - Switch to nfrastack/base image
       - Alpine 3.23
-      - Synapse 1.147.1
+      - Synapse 1.148.0
       - Removed S3 Provider
       - Removed REST Auth Provider
+
 
 ## 0.8.74 2025-08-26 <dave at tiredofit dot ca>
 
