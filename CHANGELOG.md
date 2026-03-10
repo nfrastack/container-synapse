@@ -1,3 +1,9 @@
+## 0.9.1 2026-03-10 <code at nfastack dot com>
+
+   ### Added
+      - Synapse 1.149.0
+
+
 ## 0.9.0 2026-02-24 <code at nfastack dot com>
 
    ### Added
