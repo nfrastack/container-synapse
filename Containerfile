@@ -18,8 +18,8 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    SYNAPSE_VERSION="v1.149.0" \
-    PROVIDDER_LDAP_VERSION="v0.3.0" \
+    SYNAPSE_VERSION="v1.149.1" \
+    PROVIDDER_LDAP_VERSION="v0.4.0" \
     PROVIDER_SHARED_SECRET_VERSION="2.0.3" \
     SYNAPSE_REPO_URL="https://github.com/element-hq/synapse" \
     PROVIDER_LDAP_REPO_URL="https://github.com/matrix-org/matrix-synapse-ldap3" \

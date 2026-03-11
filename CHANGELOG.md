@@ -1,3 +1,10 @@
+## 0.9.2 2026-03-11 <code at nfastack dot com>
+
+   ### Added
+      - Synapse 1.149.1
+      - Synapse LDAP3 0.4.0
+
+
 ## 0.9.1 2026-03-10 <code at nfastack dot com>
 
    ### Added
