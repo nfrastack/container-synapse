@@ -56,7 +56,7 @@ RUN echo "" && \
                                 py3-asn1 \
                                 py3-asn1-modules \
                                 py3-attrs \
-                                py3-authlib \
+                                #py3-authlib \
                                 py3-boto3 \
                                 py3-botocore \
                                 py3-bcrypt \

@@ -1,3 +1,9 @@
+## 0.9.6 2026-04-28 <code at nfrastack dot com>
+
+   ### Changed
+      - Let authlib get pulled in via pip
+
+
 ## 0.9.5 2026-04-28 <code at nfrastack dot com>
 
    ### Added
