@@ -2,7 +2,7 @@
 
 ## About
 
-This repository will build a container with [Synapse](https://matrix.oprg/docs/projects/server/synapse), A Matrix.org Homeserver.
+This repository will build a container with [Synapse](https://matrix.oprg/docs/projects/server/synapse), A Matrix Homeserver.
 
 ## Maintainer
 
