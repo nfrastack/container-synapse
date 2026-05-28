@@ -110,7 +110,7 @@ RUN echo "" && \
                         SYNAPSE_BUILD_DEPS \
                         SYNAPSE_RUN_DEPS \
                     && \
-    package build go && \
+    package build go buildtime && \
     package build yq && \
     \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
