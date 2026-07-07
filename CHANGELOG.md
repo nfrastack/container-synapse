@@ -1,3 +1,9 @@
+## 0.9.11 2026-07-07 <code at nfrastack dot com>
+
+   ### Added
+      - Synapse 1.156.0
+
+
 ## 0.9.10 2026-06-16 <code at nfrastack dot com>
 
    ### Added
