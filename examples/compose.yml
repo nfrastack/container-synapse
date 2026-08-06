@@ -43,7 +43,7 @@ services:
     restart: always
 
   synapse-db-backup:
-    image: docker.io/tiredofit/db-backup
+    image: docker.io/nfrastack/db-backup
     container_name: synapse-db-backup
     volumes:
       - ./dbbackup:/backup
