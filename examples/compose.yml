@@ -49,6 +49,9 @@ services:
       - ./dbbackup:/backup
     environment:
       - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=synapse-db-backup
+
+      - STATS_ENABLED=TRUE
 
       - DB_HOST=synapse-db
       - DB_TYPE=postgres

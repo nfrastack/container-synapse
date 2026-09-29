@@ -1,3 +1,10 @@
+## 0.9.18 2026-09-29 <code at nfrastack dot com>
+
+   ### Added
+      - Synapse 1.162.0
+      - Fix LDAP provider version
+
+
 ## 0.9.17 2026-09-15 <code at nfrastack dot com>
 
    ### Added
