@@ -1,3 +1,9 @@
+## 0.9.19 2026-09-29 <code at nfrastack dot com>
+
+   ### Changed
+      - Install txredisapi>=1.4.12 and hiredis>=0.3 via pip
+
+
 ## 0.9.18 2026-09-29 <code at nfrastack dot com>
 
    ### Added

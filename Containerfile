@@ -94,7 +94,7 @@ RUN echo "" && \
                                 py3-tqdm \
                                 py3-twisted \
                                 #py3-txacme \
-                                py3-txredisapi \
+                                #py3-txredisapi \
                                 py3-typing-extensions \
                                 py3-yaml \
                                 sed \
@@ -123,6 +123,10 @@ RUN echo "" && \
                 --break-system-packages \
                 --root-user-action ignore \
                 --upgrade dist/*.whl && \
+    pip install \
+                --break-system-packages \
+                --root-user-action ignore \
+                --upgrade "txredisapi>=1.4.12" "hiredis>=0.3" && \
     mkdir -p \
             /container/data/synapse \
             /var/run/synapse \
