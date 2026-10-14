@@ -126,7 +126,7 @@ RUN echo "" && \
     pip install \
                 --break-system-packages \
                 --root-user-action ignore \
-                --upgrade "txredisapi>=1.4.12" "hiredis>=0.3" && \
+                --upgrade "txredisapi>=1.4.12,<1.6.0" "hiredis>=0.3" && \
     mkdir -p \
             /container/data/synapse \
             /var/run/synapse \
