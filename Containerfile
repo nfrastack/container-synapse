@@ -18,7 +18,7 @@ LABEL \
         org.opencontainers.image.licenses="MIT"
 
 ARG \
-    SYNAPSE_VERSION="v1.162.0" \
+    SYNAPSE_VERSION="v1.163.0" \
     PROVIDER_LDAP_VERSION="v0.4.0" \
     PROVIDER_SHARED_SECRET_VERSION="2.0.3" \
     SYNAPSE_REPO_URL="https://github.com/element-hq/synapse" \
