@@ -1,9 +1,9 @@
-## 0.9.23 2026-10-26 <code at nfrastack dot com>
+## 0.9.23 2026-10-23 <code at nfrastack dot com>
 
    ### Changed
       - Synapse 1.163.2
 
-## 0.9.22 2026-10-26 <code at nfrastack dot com>
+## 0.9.22 2026-10-22 <code at nfrastack dot com>
 
    ### Changed
       - Synapse 1.163.1
